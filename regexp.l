@@ -9,7 +9,8 @@ noun,
 adj,
 verb,
 nil,
-error
+error,
+eof
 };
 %}
 

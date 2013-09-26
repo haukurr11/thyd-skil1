@@ -1,86 +1,99 @@
 #include "lex.yy.cc"
 #include <iostream>
+#include <vector>
+#include <string>
+using namespace std;
+
 int token;
-FlexLexer* f = new yyFlexLexer(&std::cin,&std::cout);
-void parse_error();
-void lex();
-void parse();
-void Slist();
-void S();
-void NP();
-void AP();
-void VP();
-void VPRest();
+string prevtoken_s;
+FlexLexer* f = new yyFlexLexer(&std::cin,&cout);
+string sentence;
+
+bool match(int t);
+bool Slist();
+bool S();
+bool NP();
+bool AP();
+bool VP();
+bool VPRest();
 
 int main() {
-  parse();
-}
-
-void parse_error(std::string s) {
-  std::cout << "Parse error:" << s << " " << token << " " << f->YYText();
-  exit(0);
-}
-
-void lex() {
   token = f->yylex();
-  std::cout << f->YYText();
-}
-
-void parse() {
   Slist();
 }
 
-void Slist() 
-{
-  S();
-  lex();
-  if(token == newline) {
-    Slist();
-    return;
+
+bool match(int t) {
+  if(token == t) {
+    prevtoken_s = f->YYText();
+    token = f->yylex();
+    return true;
   }
+  if(token == error)
+  {
+    cout << "ERROR: Token not recognized!:" << f->YYText() << "\n";
+    exit(0);
+  }
+  return false;
 }
 
-void S() 
+
+bool Slist() 
 {
-  NP();
-  VP();
+  if(S()) {
+    if(match(newline)) {
+      return Slist();
+    }
+    return true;
+  }
+  return false;
 }
 
-void NP() 
+bool S() 
 {
-  lex();
-  if(token == det) {
-    AP();
-    lex();
-    if(token == noun)
-      return;
-  }
-  parse_error("NP");
+  sentence = "[S";
+  if(!NP() || !VP()) {
+    return false;
+  };
+  sentence += " ]";
+  cout << sentence << "\n";
+  return true;
 }
 
-void AP() 
+bool NP()
 {
-  lex();
-  if(token == adj) {
-    return;
+  if(match(det)) {
+    sentence += (" [NP " + prevtoken_s + " ");
+    if(AP()) {
+      if(match(noun))
+        sentence += (prevtoken_s);
+        sentence += " ]";
+        return true;
+     }
   }
-  else if(token == nil) {
-    return;
-  }
-  parse_error("AP");
+  return false;
 }
 
-void VP() 
+bool AP() 
 {
-  lex();
-  if(token == verb) {
-    VPRest();
-    return;
+  if(match(adj)) {
+    sentence += ("[AP " + prevtoken_s + " ] ");
   }
-  parse_error("VP");
+  return true;
 }
 
-void VPRest() 
+bool VP() 
 {
-  NP();
+  if(match(verb)) {
+    sentence += (" [VP " + prevtoken_s);
+    if(VPRest())
+      sentence += " ]";
+      return true;
+  }
+  return false;
+}
+
+bool VPRest() 
+{
+  return NP() || true;
 }
