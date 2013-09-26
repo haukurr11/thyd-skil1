@@ -1,0 +1,2 @@
+[S [NP the [AP good ] man ] [VP ate [NP a fish ] ] ]
+[S [NP a [AP strong ] woman ] [VP ran ] ]
